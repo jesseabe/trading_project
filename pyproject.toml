@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "trading-project"
+version = "0.1.0"
+description = ""
+authors = ["Jesse <jesseabe.rodrigues@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2.2"
+yfinance = "^0.2.40"
+yahoofinancials = "^1.20"
+sqlalchemy = "^2.0.31"
+psycopg2-binary = "^2.9.9"
+openpyxl = "^3.1.5"
+pg8000 = "^1.31.2"
+psycopg2 = "^2.9.9"
+streamlit = "^1.36.0"
+matplotlib = "^3.9.1"
+seaborn = "^0.13.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
