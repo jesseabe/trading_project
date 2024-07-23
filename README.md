@@ -6,4 +6,4 @@ Este é um projeto pessoal, com o intuito de ter acesso aos dados do mercado fin
 ## Objetivos
 1. Utilizar a API aberta do Yahoo Finance para realizar o download dos dados (ultimos 120 dias).
 2. Armazenar os dados em um banco de dados PostgresSQL para realizar consultas e extrair insights rápidos.
-3. Criar um dashboard utilizando Streamlit com as informações relevantes do meu trade sistem objetivo.
+3. Criar um dashboard utilizando Streamlit com as informações relevantes do meu trade sistem objetivo.# trading_project
