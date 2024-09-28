@@ -1,10 +1,11 @@
 import pandas as pd
 import yfinance as yf
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
-from sqlalchemy.engine import URL
 import psycopg2
 from psycopg2 import Error
+from dotenv import load_dotenv
+import os
+
 
 def download_and_process_data(ticker, yahoo_ticker, start_date, end_date, interval):
     # Download the data
@@ -15,57 +16,74 @@ def download_and_process_data(ticker, yahoo_ticker, start_date, end_date, interv
     
     # Add the variation column
     data['Oscillation'] = data['High'] - data['Low']
+
+    data = data.reset_index()
     
     return data
 
 # Define parameters
 end_date = datetime.today()
-start_date = end_date - timedelta(days=220)
+start_date = end_date - timedelta(days=360)
 interval = '1D'
 
 # Download and process data for each ticker
 ibov = download_and_process_data("WINFUT", "^BVSP", start_date, end_date, interval)
+print(ibov.head())
+print(ibov.columns)
 
 # Connect to the database
-connect = psycopg2.connect( 
-    user="postgres", 
-    password="password", 
-    host="localhost", 
-    port="5432", 
-    database="mydb"
-)
+load_dotenv(".env")
+try:
+    user = os.getenv("POSTGRES_USER")
+    password = os.getenv("POSTGRES_PASSWORD")
+    host = os.getenv("POSTGRES_HOST")
+    port = os.getenv("POSTGRES_PORT")
+    dbname = os.getenv("POSTGRES_DB")
 
-# Creating a cursor object
-cursor = connect.cursor()
-connect.autocommit = True
-
-# Create the table if it doesn't exist
-sql = (
-"""
-CREATE TABLE IF NOT EXISTS ibov (
-    Date DATE PRIMARY KEY,
-    Open FLOAT,
-    High FLOAT,
-    Low FLOAT,
-    Close FLOAT,
-    Volume FLOAT,
-    Ticker VARCHAR,
-    Oscillation FLOAT
-);
-"""
-)
-cursor.execute(sql)
-connect.commit()
-
-# Insert data into the table
-for i, row in ibov.iterrows():
-    cursor.execute(
-        "INSERT INTO ibov (Date, Open, High, Low, Close, Volume, Ticker, Oscillation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
-        "ON CONFLICT (Date) DO NOTHING;",
-        (i, row['Open'], row['High'], row['Low'], row['Close'], row['Volume'], row['Ticker'], row['Oscillation'])
+    # Create connection
+    connect = psycopg2.connect(
+        user=user,
+        password=password,
+        host=host,
+        port=port,
+        dbname=dbname
     )
-connect.commit()
 
-print("Data inserted successfully!")
-cursor.close()
-connect.close()
+    # Creating a cursor object
+    cursor = connect.cursor()
+    connect.autocommit = True
+
+    # Create the table if it doesn't exist
+    sql = (
+    """
+    CREATE TABLE IF NOT EXISTS ibov (
+        date DATE PRIMARY KEY,
+        open FLOAT,
+        high FLOAT,
+        low FLOAT,
+        close FLOAT,
+        volume FLOAT,
+        ticker VARCHAR,
+        oscillation FLOAT
+    );
+    """
+    )
+    cursor.execute(sql)
+    connect.commit()
+
+    # Insert data into the table
+    for i, row in ibov.iterrows():
+        cursor.execute(
+            "INSERT INTO ibov (Date, Open, High, Low, Close, Volume, Ticker, Oscillation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (Date) DO NOTHING;",
+            (row['Date'].strftime('%Y-%m-%d'), row['Open'], row['High'], row['Low'], row['Close'], row['Volume'], row['Ticker'], row['Oscillation'])
+        )
+    connect.commit()
+
+    print("Data inserted successfully!")
+except (Exception, Error) as error:
+    print("Error while interacting with PostgreSQL", error)
+finally:
+    if connect:
+        cursor.close()
+        connect.close()

@@ -119,3 +119,25 @@ ax.set_xlabel('Period')
 ax.set_ylabel('Average Oscillation')
 ax.set_title('Average Oscillation Over Different Periods')
 st.pyplot(fig)
+
+
+# Histograma das Oscilações com Percentual
+st.subheader('Distribuição Percentual das Oscilações')
+fig, ax = plt.subplots()
+
+# Calcula o histograma e os valores dos bins
+n, bins, patches = ax.hist(filtered_df['Oscillation'], bins=6, color='purple', alpha=0.7, edgecolor='black')
+
+# Converte os valores absolutos para percentuais
+n_percent = (n / n.sum()) * 100
+
+# Adiciona o percentual dentro de cada barra
+for i in range(len(patches)):
+    ax.text(patches[i].get_x() + patches[i].get_width() / 2, patches[i].get_height(),
+            f'{n_percent[i]:.2f}%', ha='center', va='bottom')
+
+ax.set_xlabel('Oscillation')
+ax.set_ylabel('Frequency (%)')
+ax.set_title('Histogram of Oscillations (6 Bins)')
+st.pyplot(fig)
+
